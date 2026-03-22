@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+python-multipart
+pypdf
+python-dotenv
+google-generativeai
+scaledown==0.1.4
