@@ -1,138 +1,123 @@
-"# AI Legislative Analyzer 🏛️
+# AI Legislative Analyzer
 
-A minimal but fully functional FastAPI-based system for analyzing large legislative documents using multi-step AI pipelines with token compression.
+FastAPI + React application for analyzing legislative and policy documents using chunking, compression, and LLM-powered insight extraction.
 
-## Overview
+## Current Stack
 
-This project demonstrates a complete end-to-end solution for:
+- Backend: FastAPI, Uvicorn
+- LLM: Google Gemini (`google-generativeai`)
+- Compression: ScaleDown API with fallback compression
+- Parsing: `pypdf` for PDF extraction
+- Frontend: React 18 + Vite + Tailwind CSS + Framer Motion + Lucide React + Axios
 
-1. **Document Ingestion** - Upload PDFs or paste text
-2. **Intelligent Chunking** - Split documents into manageable pieces
-3. **Token Compression** - Reduce token count using ScaleDown
-4. **LLM Analysis** - Generate structured insights (key changes, impacts, timeline, risks)
-5. **Aggregation** - Combine insights across all chunks
+## Repository Structure
 
-## Project Structure
-
-```
+```text
 Legislative-Analyzer-GenAI/
-├── app.py                 # FastAPI main application
-├── pipeline.py            # Main processing pipeline orchestrator
-├── compressor.py          # ScaleDown token compression
-├── parser.py              # PDF and text extraction
-├── llm.py                 # LLM integration (mock + formatting)
-├── utils.py               # Chunking and utility functions
-├── requirements.txt       # Python dependencies
+├── app.py
+├── pipeline.py
+├── compressor.py
+├── llm.py
+├── parser.py
+├── utils.py
+├── test_pipeline.py
+├── requirements.txt
+├── .env
 └── frontend/
-    └── index.html         # Simple web UI
+    ├── package.json
+    ├── vite.config.js
+    ├── index.html
+    └── src/
+        ├── main.jsx
+        ├── App.jsx
+        ├── index.css
+        └── components/
+            ├── Navbar.jsx
+            ├── Hero.jsx
+            ├── AnalysisCard.jsx
+            ├── TextTab.jsx
+            ├── FileTab.jsx
+            ├── StatsRow.jsx
+            ├── ResultsCard.jsx
+            └── InsightSection.jsx
 ```
 
-## Features
+## Prerequisites
 
-### ✨ Core Capabilities
+- Python 3.9+
+- Node.js 18+
+- npm 9+
 
-- **Multi-format Input**: Upload PDF files or paste raw text
-- **Smart Chunking**: Intelligent text splitting with overlap handling
-- **Token Compression**: ScaleDown-based compression for efficient processing
-- **Structured Insights**: Extract key changes, affected parties, financial impacts, timelines, and risks
-- **Compression Statistics**: Track token reduction across the pipeline
-- **Clean, Modular Code**: Well-documented functions with minimal complexity
+## Environment Variables
 
-### 🎨 Frontend
+Create `.env` in the repository root:
 
-- Modern, responsive HTML/CSS UI
-- Tab-based input (text/file)
-- Real-time compression statistics
-- Formatted analysis output with bullet points
-- Drag-and-drop file upload
+```env
+GEMINI_API_KEY=your_gemini_api_key
+SCALEDOWN_API_KEY=your_scaledown_api_key
+```
 
-### 🔧 Backend
-
-- FastAPI REST API with async support
-- PDF parsing with pypdf
-- Clean separation of concerns
-- Comprehensive logging and progress tracking
-- Error handling with meaningful messages
+Notes:
+- `GEMINI_API_KEY` is required for LLM insights.
+- If `SCALEDOWN_API_KEY` is missing, the app still works using fallback compression.
 
 ## Installation
 
-### 1. Clone or extract the project
+### 1) Backend setup
 
 ```bash
-cd Legislative-Analyzer-GenAI
-```
-
-### 2. Create a virtual environment (recommended)
-
-```bash
-# On Windows
-python -m venv venv
-venv\Scripts\activate
-
-# On macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Running the Application
-
-### Start the Server
+### 2) Frontend setup
 
 ```bash
+cd frontend
+npm install
+cd ..
+```
+
+## Running the Project
+
+Run backend and frontend in separate terminals.
+
+### Terminal 1: Backend
+
+```bash
+source .venv/bin/activate
 python app.py
 ```
 
-You should see:
+Backend runs at:
+- API base: `http://127.0.0.1:8000`
+- API docs: `http://127.0.0.1:8000/docs`
+- Health: `http://127.0.0.1:8000/health`
 
-```
-============================================================
-🚀 AI LEGISLATIVE ANALYZER
-============================================================
+### Terminal 2: Frontend
 
-📌 Starting server...
-   Access the app at: http://127.0.0.1:8000
-   API docs at: http://127.0.0.1:8000/docs
-
-============================================================
+```bash
+cd frontend
+npm run dev
 ```
 
-### Access the Application
+Frontend runs at:
+- App: `http://localhost:5173`
 
-- **Web UI**: Open your browser to `http://127.0.0.1:8000`
-- **API Docs**: `http://127.0.0.1:8000/docs` (Swagger UI)
+Vite proxy forwards:
+- `/analyze` -> `http://127.0.0.1:8000/analyze`
+- `/health` -> `http://127.0.0.1:8000/health`
 
-## Usage
+## API Usage
 
-### Using the Web UI
+### `POST /analyze`
 
-1. **Paste Text**:
-   - Click the "📝 Paste Text" tab
-   - Paste your legislative document
-   - Click "🚀 Analyze Document"
+Accepts either:
+- `file` (multipart upload; PDF or text)
+- `text` (form field)
 
-2. **Upload File**:
-   - Click the "📤 Upload File" tab
-   - Drag and drop a PDF or text file (or click to browse)
-   - Click "🚀 Analyze Document"
-
-3. **View Results**:
-   - See compression statistics
-   - Read formatted analysis with:
-     - Key Changes
-     - Who is Affected
-     - Financial/Legal Impact
-     - Timeline
-     - Risks/Concerns
-
-### Using the API
-
-#### Request
+Example (file):
 
 ```bash
 curl -X POST http://127.0.0.1:8000/analyze \
@@ -140,252 +125,109 @@ curl -X POST http://127.0.0.1:8000/analyze \
   -F "file=@sample.pdf"
 ```
 
-Or with text:
+Example (raw text):
 
 ```bash
 curl -X POST http://127.0.0.1:8000/analyze \
-  -F "text=Your legal document text here..."
+  -F "text=Your policy or bill text here"
 ```
 
-#### Response
+Example response:
 
 ```json
 {
-  "summary": "KEY CHANGES:\n• Legislative amendments identified\n...",
-  "num_chunks": 5,
+  "status": "success",
+  "summary": "Key Changes:\n- ...",
+  "num_chunks": 4,
   "chunk_stats": {
-    "original_total_tokens": 2500,
-    "compressed_total_tokens": 1850,
-    "chunks_processed": 5
-  },
-  "status": "success"
+    "original_total_tokens": 8400,
+    "compressed_total_tokens": 3100
+  }
 }
 ```
 
-## Pipeline Stages
+## Implementation Flow
 
-### Stage 1: Text Cleaning
-- Normalizes whitespace
-- Prepares text for chunking
+### 1) Input parsing (`app.py`, `parser.py`)
+- Detects PDF vs text input
+- Extracts and cleans text
+- Rejects empty/unreadable input
 
-### Stage 2: Chunking
-- Splits text into ~2000 character chunks
-- Maintains overlap for context (200 chars)
-- Filters out very small chunks
-- Tries to break at sentence boundaries
+### 2) Chunking (`utils.py`)
+- Splits text into chunks (default 2000 chars)
+- Uses overlap (default 200 chars)
+- Tries sentence/word boundaries
 
-### Stage 3: Compression
-- Uses ScaleDown compressor on each chunk
-- Tracks token reduction per chunk
-- Falls back gracefully if ScaleDown unavailable
-- Displays overall compression percentage
+### 3) Compression (`compressor.py`)
+- Attempts ScaleDown compression
+- Falls back to deterministic local compression if API is unavailable
 
-### Stage 4: Insight Generation
-- Pattern-based analysis (mock LLM)
-- Extracts 5 categories of insights:
-  - **Key Changes**: amendments, new provisions
-  - **Who Affected**: citizens, businesses, government
-  - **Financial Impact**: costs, fees, penalties
-  - **Timeline**: implementation dates, effective dates
-  - **Risks/Concerns**: compliance issues, potential problems
+### 4) Insight generation (`llm.py`)
+- Sends compressed chunk text to Gemini
+- Enforces strict JSON response shape
+- Formats into 5 sections:
+  - Key Changes
+  - Who Is Affected
+  - Financial Impact
+  - Timeline
+  - Risks and Concerns
 
-### Stage 5: Aggregation
-- Combines insights from all chunks
-- Removes duplicates
-- Formats as bullet-pointed text
+### 5) Aggregation and refinement (`pipeline.py`)
+- Deduplicates and prioritizes lines
+- Re-structures final output into sectioned bullets
+- Returns chunk stats and final summary
 
-## Configuration
+## Frontend Features
 
-### Adjust Chunk Size
+- Two input modes: text and file upload
+- Animated tab switching and transitions
+- Analyze button with loading state
+- Error handling UI
+- Parsed result rendering by sections
+- Stats cards:
+  - Chunks Processed
+  - Original Tokens
+  - Compressed Tokens
+  - Compression Rate
 
-In `pipeline.py`, modify the `chunk_text()` call:
+## Testing
 
-```python
-chunks = chunk_text(text, chunk_size=3000, overlap=300)
+Run the sample pipeline test:
+
+```bash
+source .venv/bin/activate
+python test_pipeline.py
 ```
 
-### Use Real LLM API
+This runs the end-to-end backend pipeline using the sample legislative text in `test_pipeline.py`.
 
-In `llm.py`, replace the mock `generate_insights()` function with actual API calls:
+## Build Frontend
 
-```python
-import openai
-
-def generate_insights(chunk: str) -> dict:
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "Extract legal insights..."},
-            {"role": "user", "content": chunk}
-        ]
-    )
-    # Parse and structure response...
-```
-
-## Dependencies
-
-- **fastapi** - Web framework
-- **uvicorn** - ASGI server
-- **python-multipart** - File upload handling
-- **pydantic** - Data validation
-- **pypdf** - PDF text extraction
-- **scaledown** - Token compression
-
-## Key Code Examples
-
-### Run the Pipeline
-
-```python
-from pipeline import process_document
-
-result = process_document(your_text)
-print(result['summary'])
-print(f"Chunks: {result['num_chunks']}")
-```
-
-### Extract PDF Text
-
-```python
-from parser import extract_text_from_pdf
-
-with open('law.pdf', 'rb') as f:
-    text = extract_text_from_pdf(f.read())
-```
-
-### Compress Text
-
-```python
-from compressor import compress_chunk
-
-compressed, stats = compress_chunk(text_chunk)
-print(f"Compression: {stats['compression_ratio']:.0%}")
-```
-
-## Logs and Progress
-
-The application prints detailed progress at each stage:
-
-```
-============================================================
-STARTING DOCUMENT ANALYSIS PIPELINE
-============================================================
-
-[1/5] Cleaning text...
-    ✓ Text cleaned (15432 characters)
-
-[2/5] Chunking document...
-    ✓ Created 8 chunks
-
-[3/5] Compressing chunks with ScaleDown...
-    ✓ Chunk 1/8 compressed 35.2%
-    ✓ Chunk 2/8 compressed 38.1%
-    ...
-    Overall compression: 36.5%
-
-[4/5] Generating insights from compressed chunks...
-    ✓ Insights generated for chunk 1/8
-    ...
-
-[5/5] Aggregating results...
-    ✓ Aggregation complete
-
-============================================================
-ANALYSIS COMPLETE
-============================================================
-```
-
-## Extending the System
-
-### Add Database Storage
-
-Replace in-memory results with a database (SQLite, PostgreSQL):
-
-```python
-from sqlalchemy import create_engine
-# Add model and store results
-```
-
-### Add Authentication
-
-Protect the API with API keys or OAuth2:
-
-```python
-from fastapi.security import HTTPBearer
-```
-
-### Use Real LLM APIs
-
-Replace mock insights with:
-- OpenAI GPT-4
-- Anthropic Claude
-- LLaMA via Ollama
-- Local fine-tuned models
-
-### Add Email Notifications
-
-Send analysis results via email:
-
-```python
-import smtplib
-```
-
-### Implement Caching
-
-Cache analysis results for identical documents:
-
-```python
-from functools import lru_cache
+```bash
+cd frontend
+npm run build
+npm run preview
 ```
 
 ## Troubleshooting
 
-### "ScaleDown not available" warning
+### Missing Gemini key
+Symptom: warnings about Gemini model not available and weak/no insights.
+Fix: set `GEMINI_API_KEY` in `.env`.
 
-If you see this, ScaleDown isn't installed. The system will still work with original chunks.
+### ScaleDown unavailable
+Symptom: compression still works but uses fallback behavior.
+Fix: set `SCALEDOWN_API_KEY` in `.env`.
 
-```bash
-pip install scaledown
-```
+### Empty PDF extraction
+Symptom: "contains no extractable text" error.
+Fix: use text-based PDFs (scanned/image PDFs need OCR, not implemented here).
 
-### PDF extraction issues
+### Port conflicts
+- Backend port is configured in `app.py` (`8000`)
+- Frontend dev server defaults to `5173`
 
-Ensure the PDF has extractable text (not scanned images):
+## Important Notes
 
-```bash
-pip install --upgrade pypdf
-```
-
-### Port already in use
-
-Change the port in `app.py`:
-
-```python
-uvicorn.run(app, host="127.0.0.1", port=8001)
-```
-
-## Performance Tips
-
-- **Large documents**: Increase chunk size to reduce overhead
-- **Many chunks**: Implement batching for parallel processing
-- **Memory constraints**: Stream processing instead of loading all at once
-- **API rate limits**: Add request queuing/throttling
-
-## License
-
-Open source - MIT License
-
-## Next Steps
-
-- [ ] Replace mock LLM with real API integration
-- [ ] Add database for storing analysis history
-- [ ] Implement user authentication
-- [ ] Add support for multiple languages
-- [ ] Build admin dashboard for analytics
-- [ ] Deploy to cloud (AWS, Azure, GCP)
-- [ ] Add WebSocket support for real-time updates
-- [ ] Create Docker containerization
-
----
-
-**Built with ❤️ for legislative analysis | 2026**
-" 
+- Main user interface is the React app served by Vite at `http://localhost:5173` during development.
+- Backend remains API-first and serves `/analyze`, `/health`, and Swagger docs.
